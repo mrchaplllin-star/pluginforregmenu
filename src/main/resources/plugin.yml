@@ -1,0 +1,20 @@
+name: RegMenu
+main: com.example.regmenu.RegMenuPlugin
+version: 1.0.0
+api-version: '1.21'
+commands:
+  regmenu:
+    description: Edit and configure menus.
+    usage: /regmenu <decor|name|command>
+    permission: regmenu.edit
+  openmenu:
+    description: Open a saved menu.
+    usage: /openmenu <menu>
+    permission: regmenu.open
+permissions:
+  regmenu.edit:
+    description: Allows editing menus.
+    default: op
+  regmenu.open:
+    description: Allows opening menus.
+    default: true
