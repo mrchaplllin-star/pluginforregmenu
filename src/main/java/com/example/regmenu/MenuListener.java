@@ -1,6 +1,5 @@
 package com.example.regmenu;
 
-import java.util.Locale;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -8,15 +7,11 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 
 public class MenuListener implements Listener {
   private final RegMenuPlugin plugin;
@@ -41,24 +36,6 @@ public class MenuListener implements Listener {
       return;
     }
 
-    if (event.getInventory() instanceof AnvilInventory && plugin.getPendingAnvilInputs().containsKey(player.getUniqueId())) {
-      if (event.getRawSlot() == 2 && event.getClick() != ClickType.NUMBER_KEY) {
-        event.setCancelled(true);
-        ItemStack result = event.getCurrentItem();
-        if (result == null || result.getType() == Material.AIR) {
-          return;
-        }
-        PendingInput pending = plugin.getPendingAnvilInputs().remove(player.getUniqueId());
-        String input = getItemName(result);
-        if (input == null || input.isBlank()) {
-          player.sendMessage(ChatColor.RED + "Input cannot be empty.");
-          player.closeInventory();
-          return;
-        }
-        applyInput(player, pending, input.trim());
-        player.closeInventory();
-      }
-    }
   }
 
   @EventHandler
@@ -84,21 +61,6 @@ public class MenuListener implements Listener {
       }
     }
 
-    if (event.getInventory() instanceof AnvilInventory) {
-      plugin.getPendingAnvilInputs().remove(player.getUniqueId());
-    }
-  }
-
-  @EventHandler
-  public void onChatInput(AsyncPlayerChatEvent event) {
-    Player player = event.getPlayer();
-    PendingInput pending = plugin.getPendingChatInputs().remove(player.getUniqueId());
-    if (pending == null) {
-      return;
-    }
-    event.setCancelled(true);
-    String message = event.getMessage();
-    Bukkit.getScheduler().runTask(plugin, () -> applyInput(player, pending, message));
   }
 
   private void saveInventoryToMenu(String menuName, Inventory inventory) {
@@ -138,42 +100,4 @@ public class MenuListener implements Listener {
     Bukkit.dispatchCommand(sender, sanitized);
   }
 
-  private void applyInput(Player player, PendingInput pending, String input) {
-    MenuData menu = plugin.getMenuManager().getOrCreateMenu(pending.getMenuName());
-    MenuItemData item = menu.getItem(pending.getSlot());
-    if (item == null || item.getItemStack() == null || item.getItemStack().getType() == Material.AIR) {
-      player.sendMessage(ChatColor.RED + "That slot is empty in this menu.");
-      return;
-    }
-    if (pending.getType() == PendingInput.Type.NAME) {
-      item.applyName(input);
-      menu.setItem(pending.getSlot(), item);
-      plugin.getMenuManager().saveMenu(menu);
-      player.sendMessage(ChatColor.GREEN + "Name updated.");
-      return;
-    }
-    String commandInput = input.trim();
-    CommandExecutorType executor = CommandExecutorType.PLAYER;
-    String normalized = commandInput.toLowerCase(Locale.ROOT);
-    if (normalized.startsWith("console:")) {
-      executor = CommandExecutorType.CONSOLE;
-      commandInput = commandInput.substring("console:".length()).trim();
-    } else if (normalized.startsWith("player:")) {
-      executor = CommandExecutorType.PLAYER;
-      commandInput = commandInput.substring("player:".length()).trim();
-    }
-    item.setCommand(commandInput);
-    item.setExecutor(executor);
-    menu.setItem(pending.getSlot(), item);
-    plugin.getMenuManager().saveMenu(menu);
-    player.sendMessage(ChatColor.GREEN + "Command assigned.");
-  }
-
-  private String getItemName(ItemStack item) {
-    ItemMeta meta = item.getItemMeta();
-    if (meta != null && meta.hasDisplayName()) {
-      return meta.getDisplayName();
-    }
-    return item.getType().name();
-  }
 }

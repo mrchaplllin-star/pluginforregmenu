@@ -10,12 +10,14 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class RegMenuPlugin extends JavaPlugin {
   private MenuManager menuManager;
   private final Map<UUID, EditorSession> editorSessions = new HashMap<>();
-  private final Map<UUID, PendingInput> pendingAnvilInputs = new HashMap<>();
-  private final Map<UUID, PendingInput> pendingChatInputs = new HashMap<>();
+  private OpenCommandRegistrar openCommandRegistrar;
 
   @Override
   public void onEnable() {
     menuManager = new MenuManager(this);
+    menuManager.loadAllMenus();
+    openCommandRegistrar = new OpenCommandRegistrar(this);
+    openCommandRegistrar.registerAll();
     MenuListener listener = new MenuListener(this);
     Bukkit.getPluginManager().registerEvents(listener, this);
 
@@ -42,11 +44,7 @@ public class RegMenuPlugin extends JavaPlugin {
     return editorSessions;
   }
 
-  public Map<UUID, PendingInput> getPendingAnvilInputs() {
-    return pendingAnvilInputs;
-  }
-
-  public Map<UUID, PendingInput> getPendingChatInputs() {
-    return pendingChatInputs;
+  public OpenCommandRegistrar getOpenCommandRegistrar() {
+    return openCommandRegistrar;
   }
 }

@@ -4,17 +4,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.AnvilInventory;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryView;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,23 +41,44 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
     MenuData menu = menuManager.getOrCreateMenu(menuName);
 
     switch (sub) {
-      case "create" -> handleCreate(player, menu);
+      case "create" -> handleCreate(player, menu, args);
       case "decor" -> openEditor(player, menu);
       case "name" -> handleRename(player, menu, args);
       case "command" -> handleCommandAssign(player, menu, args);
+      case "opencommand" -> handleOpenCommand(player, menu, args);
       default -> sendUsage(player);
     }
     return true;
   }
 
-  private void handleCreate(Player player, MenuData menu) {
-    plugin.getMenuManager().saveMenu(menu);
-    player.sendMessage(ChatColor.GREEN + "Menu created: " + menu.getName());
+  private void handleCreate(Player player, MenuData menu, String[] args) {
+    if (args.length < 3) {
+      player.sendMessage(ChatColor.RED + "Usage: /regmenu create <menu> <type>");
+      return;
+    }
+    String typeId = args[2].toLowerCase();
+    if (!isValidType(typeId)) {
+      player.sendMessage(ChatColor.RED + "Invalid type. Use: chest, large_chest, ender_chest, barrel, shulker_color");
+      return;
+    }
+    MenuInventoryType type = MenuInventoryType.fromId(typeId);
+    MenuData updated = new MenuData(menu.getName(), type.getSize(), type, typeId);
+    updated.getItems().putAll(menu.getItems());
+    updated.getOpenCommands().addAll(menu.getOpenCommands());
+    plugin.getMenuManager().getMenus().put(plugin.getMenuManager().normalizeName(menu.getName()), updated);
+    plugin.getMenuManager().saveMenu(updated);
+    player.sendMessage(ChatColor.GREEN + "Menu created: " + updated.getName() + " (" + typeId + ")");
   }
 
   private void openEditor(Player player, MenuData menu) {
-    Inventory inventory = plugin.getServer().createInventory(new MenuHolder(menu.getName(), MenuHolder.Mode.EDIT),
-        menu.getSize(), ChatColor.DARK_GREEN + "Edit: " + menu.getName());
+    org.bukkit.inventory.Inventory inventory;
+    if (menu.getInventoryType().getInventoryType() == null) {
+      inventory = plugin.getServer().createInventory(new MenuHolder(menu.getName(), MenuHolder.Mode.EDIT),
+          menu.getSize(), ChatColor.DARK_GREEN + "Edit: " + menu.getName());
+    } else {
+      inventory = plugin.getServer().createInventory(new MenuHolder(menu.getName(), MenuHolder.Mode.EDIT),
+          menu.getInventoryType().getInventoryType(), ChatColor.DARK_GREEN + "Edit: " + menu.getName());
+    }
     menu.getItems().forEach((slot, item) -> inventory.setItem(slot, item.getItemStack()));
     plugin.getEditorSessions().put(player.getUniqueId(), new EditorSession(menu.getName(), inventory));
     player.openInventory(inventory);
@@ -71,8 +86,8 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
   }
 
   private void handleRename(Player player, MenuData menu, String[] args) {
-    if (args.length < 3) {
-      player.sendMessage(ChatColor.RED + "Usage: /regmenu name <menu> <slot>" );
+    if (args.length < 4) {
+      player.sendMessage(ChatColor.RED + "Usage: /regmenu name <menu> <slot> <name>");
       return;
     }
     int slot = parseSlot(player, args[2], menu.getSize());
@@ -80,17 +95,20 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
       return;
     }
     MenuItemData itemData = menu.getItem(slot);
-    if (itemData == null || itemData.getItemStack() == null || itemData.getItemStack().getType() == Material.AIR) {
+    if (itemData == null || itemData.getItemStack() == null) {
       player.sendMessage(ChatColor.RED + "That slot is empty in this menu.");
       return;
     }
-    openAnvilInput(player, new PendingInput(PendingInput.Type.NAME, menu.getName(), slot),
-        ChatColor.YELLOW + "Enter new name");
+    String name = String.join(" ", java.util.Arrays.copyOfRange(args, 3, args.length));
+    itemData.applyName(ChatColor.translateAlternateColorCodes('&', name));
+    menu.setItem(slot, itemData);
+    plugin.getMenuManager().saveMenu(menu);
+    player.sendMessage(ChatColor.GREEN + "Name updated.");
   }
 
   private void handleCommandAssign(Player player, MenuData menu, String[] args) {
-    if (args.length < 3) {
-      player.sendMessage(ChatColor.RED + "Usage: /regmenu command <menu> <slot> [anvil|chat]");
+    if (args.length < 5) {
+      player.sendMessage(ChatColor.RED + "Usage: /regmenu command <menu> <slot> <player|console> <command>");
       return;
     }
     int slot = parseSlot(player, args[2], menu.getSize());
@@ -98,36 +116,53 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
       return;
     }
     MenuItemData itemData = menu.getItem(slot);
-    if (itemData == null || itemData.getItemStack() == null || itemData.getItemStack().getType() == Material.AIR) {
+    if (itemData == null || itemData.getItemStack() == null) {
       player.sendMessage(ChatColor.RED + "That slot is empty in this menu.");
       return;
     }
-    String mode = args.length >= 4 ? args[3].toLowerCase() : "anvil";
-    PendingInput pending = new PendingInput(PendingInput.Type.COMMAND, menu.getName(), slot);
-    if (mode.equals("chat")) {
-      plugin.getPendingChatInputs().put(player.getUniqueId(), pending);
-      player.sendMessage(ChatColor.GOLD + "Type the command in chat. Use 'console:' or 'player:' prefix to choose executor.");
-      player.sendMessage(ChatColor.GRAY + "Example: console:/say Hello or /warp spawn");
-    } else {
-      openAnvilInput(player, pending, ChatColor.YELLOW + "Enter command");
-    }
+    CommandExecutorType executor = CommandExecutorType.fromString(args[3]);
+    String command = String.join(" ", java.util.Arrays.copyOfRange(args, 4, args.length));
+    itemData.setCommand(command);
+    itemData.setExecutor(executor);
+    menu.setItem(slot, itemData);
+    plugin.getMenuManager().saveMenu(menu);
+    player.sendMessage(ChatColor.GREEN + "Command assigned.");
   }
 
-  private void openAnvilInput(Player player, PendingInput pendingInput, String title) {
-    Inventory inventory = plugin.getServer().createInventory(player, org.bukkit.event.inventory.InventoryType.ANVIL,
-        title);
-    ItemStack paper = new ItemStack(Material.PAPER);
-    ItemMeta meta = paper.getItemMeta();
-    if (meta != null) {
-      meta.setDisplayName(" ");
-      paper.setItemMeta(meta);
+  private void handleOpenCommand(Player player, MenuData menu, String[] args) {
+    if (args.length < 4) {
+      player.sendMessage(ChatColor.RED + "Usage: /regmenu opencommand <add|remove> <menu> <command>");
+      return;
     }
-    inventory.setItem(0, paper);
-    plugin.getPendingAnvilInputs().put(player.getUniqueId(), pendingInput);
-    InventoryView view = player.openInventory(inventory);
-    if (view.getTopInventory() instanceof AnvilInventory anvilInventory) {
-      anvilInventory.setItem(0, paper);
+    String action = args[2].toLowerCase();
+    String command = args[3];
+    String normalized = plugin.getOpenCommandRegistrar().normalize(command);
+    if (normalized.isBlank()) {
+      player.sendMessage(ChatColor.RED + "Command cannot be empty.");
+      return;
     }
+    if (action.equals("add")) {
+      if (menu.getOpenCommands().contains(normalized)) {
+        player.sendMessage(ChatColor.RED + "That open command already exists.");
+        return;
+      }
+      menu.getOpenCommands().add(normalized);
+      plugin.getMenuManager().saveMenu(menu);
+      plugin.getOpenCommandRegistrar().registerCommand(menu.getName(), normalized);
+      player.sendMessage(ChatColor.GREEN + "Open command added: /" + normalized);
+      return;
+    }
+    if (action.equals("remove")) {
+      if (!menu.getOpenCommands().remove(normalized)) {
+        player.sendMessage(ChatColor.RED + "That open command does not exist.");
+        return;
+      }
+      plugin.getMenuManager().saveMenu(menu);
+      plugin.getOpenCommandRegistrar().unregisterCommand(normalized);
+      player.sendMessage(ChatColor.GREEN + "Open command removed: /" + normalized);
+      return;
+    }
+    player.sendMessage(ChatColor.RED + "Usage: /regmenu opencommand <add|remove> <menu> <command>");
   }
 
   private int parseSlot(Player player, String slotArg, int size) {
@@ -146,20 +181,40 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
 
   private void sendUsage(Player player) {
     player.sendMessage(ChatColor.YELLOW + "Usage:");
-    player.sendMessage(ChatColor.GRAY + "/regmenu create <menu>");
+    player.sendMessage(ChatColor.GRAY + "/regmenu create <menu> <type>");
     player.sendMessage(ChatColor.GRAY + "/regmenu decor <menu>");
-    player.sendMessage(ChatColor.GRAY + "/regmenu name <menu> <slot>");
-    player.sendMessage(ChatColor.GRAY + "/regmenu command <menu> <slot> [anvil|chat]");
+    player.sendMessage(ChatColor.GRAY + "/regmenu name <menu> <slot> <name>");
+    player.sendMessage(ChatColor.GRAY + "/regmenu command <menu> <slot> <player|console> <command>");
+    player.sendMessage(ChatColor.GRAY + "/regmenu opencommand <add|remove> <menu> <command>");
+  }
+
+  private boolean isValidType(String typeId) {
+    if (typeId == null) {
+      return false;
+    }
+    if (typeId.startsWith("shulker_")) {
+      return true;
+    }
+    return typeId.equals("chest")
+        || typeId.equals("large_chest")
+        || typeId.equals("ender_chest")
+        || typeId.equals("barrel");
   }
 
   @Override
   public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command,
                                               @NotNull String alias, @NotNull String[] args) {
     if (args.length == 1) {
-      return Arrays.asList("create", "decor", "name", "command");
+      return Arrays.asList("create", "decor", "name", "command", "opencommand");
+    }
+    if (args.length == 3 && args[0].equalsIgnoreCase("create")) {
+      return Arrays.asList("chest", "large_chest", "ender_chest", "barrel", "shulker_red");
+    }
+    if (args.length == 3 && args[0].equalsIgnoreCase("opencommand")) {
+      return Arrays.asList("add", "remove");
     }
     if (args.length == 4 && args[0].equalsIgnoreCase("command")) {
-      return Arrays.asList("anvil", "chat");
+      return Arrays.asList("player", "console");
     }
     return new ArrayList<>();
   }

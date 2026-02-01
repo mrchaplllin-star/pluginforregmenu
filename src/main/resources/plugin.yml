@@ -5,7 +5,7 @@ api-version: '1.21'
 commands:
   regmenu:
     description: Edit and configure menus.
-    usage: /regmenu <create|decor|name|command>
+    usage: /regmenu <create|decor|name|command|opencommand>
     permission: regmenu.edit
   openmenu:
     description: Open a saved menu.

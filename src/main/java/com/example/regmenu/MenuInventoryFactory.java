@@ -9,8 +9,14 @@ public final class MenuInventoryFactory {
   }
 
   public static void openMenu(Player player, MenuData menu) {
-    Inventory inventory = player.getServer().createInventory(new MenuHolder(menu.getName(), MenuHolder.Mode.VIEW),
-        menu.getSize(), ChatColor.DARK_AQUA + "Menu: " + menu.getName());
+    Inventory inventory;
+    if (menu.getInventoryType().getInventoryType() == null) {
+      inventory = player.getServer().createInventory(new MenuHolder(menu.getName(), MenuHolder.Mode.VIEW),
+          menu.getSize(), ChatColor.DARK_AQUA + "Menu: " + menu.getName());
+    } else {
+      inventory = player.getServer().createInventory(new MenuHolder(menu.getName(), MenuHolder.Mode.VIEW),
+          menu.getInventoryType().getInventoryType(), ChatColor.DARK_AQUA + "Menu: " + menu.getName());
+    }
     menu.getItems().forEach((slot, item) -> inventory.setItem(slot, item.getItemStack()));
     player.openInventory(inventory);
   }

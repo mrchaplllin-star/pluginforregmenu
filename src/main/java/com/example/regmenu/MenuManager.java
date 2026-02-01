@@ -28,7 +28,8 @@ public class MenuManager {
   public MenuData loadMenu(String normalizedName) {
     File file = new File(menusFolder, normalizedName + ".yml");
     if (!file.exists()) {
-      return new MenuData(normalizedName, 54);
+      MenuInventoryType type = MenuInventoryType.CHEST;
+      return new MenuData(normalizedName, type.getSize(), type, type.getId());
     }
     YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
     return MenuData.fromConfig(normalizedName, config);
@@ -51,5 +52,20 @@ public class MenuManager {
 
   public File getMenusFolder() {
     return menusFolder;
+  }
+
+  public Map<String, MenuData> getMenus() {
+    return menus;
+  }
+
+  public void loadAllMenus() {
+    File[] files = menusFolder.listFiles((dir, filename) -> filename.endsWith(".yml"));
+    if (files == null) {
+      return;
+    }
+    for (File file : files) {
+      String name = file.getName().replaceFirst("\\.yml$", "");
+      menus.put(normalizeName(name), loadMenu(normalizeName(name)));
+    }
   }
 }
