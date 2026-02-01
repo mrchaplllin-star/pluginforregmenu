@@ -47,12 +47,18 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
     MenuData menu = menuManager.getOrCreateMenu(menuName);
 
     switch (sub) {
+      case "create" -> handleCreate(player, menu);
       case "decor" -> openEditor(player, menu);
       case "name" -> handleRename(player, menu, args);
       case "command" -> handleCommandAssign(player, menu, args);
       default -> sendUsage(player);
     }
     return true;
+  }
+
+  private void handleCreate(Player player, MenuData menu) {
+    plugin.getMenuManager().saveMenu(menu);
+    player.sendMessage(ChatColor.GREEN + "Menu created: " + menu.getName());
   }
 
   private void openEditor(Player player, MenuData menu) {
@@ -140,6 +146,7 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
 
   private void sendUsage(Player player) {
     player.sendMessage(ChatColor.YELLOW + "Usage:");
+    player.sendMessage(ChatColor.GRAY + "/regmenu create <menu>");
     player.sendMessage(ChatColor.GRAY + "/regmenu decor <menu>");
     player.sendMessage(ChatColor.GRAY + "/regmenu name <menu> <slot>");
     player.sendMessage(ChatColor.GRAY + "/regmenu command <menu> <slot> [anvil|chat]");
@@ -149,7 +156,7 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
   public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command,
                                               @NotNull String alias, @NotNull String[] args) {
     if (args.length == 1) {
-      return Arrays.asList("decor", "name", "command");
+      return Arrays.asList("create", "decor", "name", "command");
     }
     if (args.length == 4 && args[0].equalsIgnoreCase("command")) {
       return Arrays.asList("anvil", "chat");
