@@ -72,14 +72,29 @@ public class MenuListener implements Listener {
       } else {
         MenuItemData data = menu.getItem(slot);
         if (data == null) {
-          data = new MenuItemData(item.clone());
+          data = new MenuItemData(sanitizeItem(item.clone()));
         } else {
-          data.setItemStack(item.clone());
+          data.setItemStack(sanitizeItem(item.clone()));
         }
         menu.setItem(slot, data);
       }
     }
     plugin.getMenuManager().saveMenu(menu);
+  }
+
+  private ItemStack sanitizeItem(ItemStack item) {
+    var meta = item.getItemMeta();
+    if (meta != null) {
+      meta.setDisplayName(null);
+      meta.setLore(null);
+      meta.setCustomModelData(null);
+      meta.setUnbreakable(false);
+      meta.setAttributeModifiers(null);
+      meta.getEnchants().keySet().forEach(meta::removeEnchant);
+      meta.getItemFlags().forEach(meta::removeItemFlags);
+      item.setItemMeta(meta);
+    }
+    return item;
   }
 
   private void handleMenuClick(Player player, String menuName, int slot) {

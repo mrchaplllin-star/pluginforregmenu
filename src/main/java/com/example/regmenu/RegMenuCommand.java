@@ -44,7 +44,10 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
       case "create" -> handleCreate(player, menu, args);
       case "decor" -> openEditor(player, menu);
       case "name" -> handleRename(player, menu, args);
+      case "namemenu" -> handleMenuName(player, menu, args);
       case "command" -> handleCommandAssign(player, menu, args);
+      case "itemchar" -> handleItemCharm(player, menu, args);
+      case "lore" -> handleLore(player, menu, args);
       case "opencommand" -> handleOpenCommand(player, menu, args);
       default -> sendUsage(player);
     }
@@ -76,12 +79,13 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
 
   private void openEditor(Player player, MenuData menu) {
     org.bukkit.inventory.Inventory inventory;
+    String title = MenuTitleFormatter.format(menu);
     if (menu.getInventoryType().getInventoryType() == null) {
       inventory = plugin.getServer().createInventory(new MenuHolder(menu.getName(), MenuHolder.Mode.EDIT),
-          menu.getSize(), ChatColor.DARK_GREEN + "Edit: " + menu.getName());
+          menu.getSize(), title);
     } else {
       inventory = plugin.getServer().createInventory(new MenuHolder(menu.getName(), MenuHolder.Mode.EDIT),
-          menu.getInventoryType().getInventoryType(), ChatColor.DARK_GREEN + "Edit: " + menu.getName());
+          menu.getInventoryType().getInventoryType(), title);
     }
     menu.getItems().forEach((slot, item) -> {
       if (slot >= 0 && slot < inventory.getSize()) {
@@ -114,6 +118,30 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
     player.sendMessage(ChatColor.GREEN + "Name updated.");
   }
 
+  private void handleMenuName(Player player, MenuData menu, String[] args) {
+    if (args.length < 3) {
+      player.sendMessage(ChatColor.RED + "Usage: /regmenu namemenu <menu> <name> OR /regmenu namemenu <menu> <left|center|right> <name>");
+      return;
+    }
+    String alignmentCandidate = args[2].toLowerCase();
+    MenuTitleAlignment alignment = MenuTitleAlignment.fromString(alignmentCandidate);
+    int startIndex = 2;
+    if (alignmentCandidate.equals("left") || alignmentCandidate.equals("center") || alignmentCandidate.equals("right")) {
+      startIndex = 3;
+    } else {
+      alignment = MenuTitleAlignment.LEFT;
+    }
+    if (args.length <= startIndex) {
+      player.sendMessage(ChatColor.RED + "Usage: /regmenu namemenu <menu> <name> OR /regmenu namemenu <menu> <left|center|right> <name>");
+      return;
+    }
+    String name = String.join(" ", java.util.Arrays.copyOfRange(args, startIndex, args.length));
+    menu.setTitle(ChatColor.translateAlternateColorCodes('&', name));
+    menu.setTitleAlignment(alignment);
+    plugin.getMenuManager().saveMenu(menu);
+    player.sendMessage(ChatColor.GREEN + "Menu title updated.");
+  }
+
   private void handleCommandAssign(Player player, MenuData menu, String[] args) {
     if (args.length < 5) {
       player.sendMessage(ChatColor.RED + "Usage: /regmenu command <menu> <slot> <player|console> <command>");
@@ -135,6 +163,48 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
     menu.setItem(slot, itemData);
     plugin.getMenuManager().saveMenu(menu);
     player.sendMessage(ChatColor.GREEN + "Command assigned.");
+  }
+
+  private void handleItemCharm(Player player, MenuData menu, String[] args) {
+    if (args.length < 4) {
+      player.sendMessage(ChatColor.RED + "Usage: /regmenu itemchar <menu> <slot> <true|false>");
+      return;
+    }
+    int slot = parseSlot(player, args[2], menu.getSize());
+    if (slot < 0) {
+      return;
+    }
+    MenuItemData itemData = menu.getItem(slot);
+    if (itemData == null || itemData.getItemStack() == null) {
+      player.sendMessage(ChatColor.RED + "That slot is empty in this menu.");
+      return;
+    }
+    boolean enabled = Boolean.parseBoolean(args[3]);
+    itemData.setGlint(enabled);
+    menu.setItem(slot, itemData);
+    plugin.getMenuManager().saveMenu(menu);
+    player.sendMessage(ChatColor.GREEN + "Item glint updated.");
+  }
+
+  private void handleLore(Player player, MenuData menu, String[] args) {
+    if (args.length < 4) {
+      player.sendMessage(ChatColor.RED + "Usage: /regmenu lore <menu> <slot> <text>");
+      return;
+    }
+    int slot = parseSlot(player, args[2], menu.getSize());
+    if (slot < 0) {
+      return;
+    }
+    MenuItemData itemData = menu.getItem(slot);
+    if (itemData == null || itemData.getItemStack() == null) {
+      player.sendMessage(ChatColor.RED + "That slot is empty in this menu.");
+      return;
+    }
+    String lore = String.join(" ", java.util.Arrays.copyOfRange(args, 3, args.length));
+    itemData.applyLore(ChatColor.translateAlternateColorCodes('&', lore));
+    menu.setItem(slot, itemData);
+    plugin.getMenuManager().saveMenu(menu);
+    player.sendMessage(ChatColor.GREEN + "Item lore updated.");
   }
 
   private void handleOpenCommand(Player player, MenuData menu, String[] args) {
@@ -192,7 +262,11 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
     player.sendMessage(ChatColor.GRAY + "/regmenu create <menu> <type>");
     player.sendMessage(ChatColor.GRAY + "/regmenu decor <menu>");
     player.sendMessage(ChatColor.GRAY + "/regmenu name <menu> <slot> <name>");
+    player.sendMessage(ChatColor.GRAY + "/regmenu namemenu <menu> <name>");
+    player.sendMessage(ChatColor.GRAY + "/regmenu namemenu <menu> <left|center|right> <name>");
     player.sendMessage(ChatColor.GRAY + "/regmenu command <menu> <slot> <player|console> <command>");
+    player.sendMessage(ChatColor.GRAY + "/regmenu lore <menu> <slot> <text>");
+    player.sendMessage(ChatColor.GRAY + "/regmenu itemchar <menu> <slot> <true|false>");
     player.sendMessage(ChatColor.GRAY + "/regmenu opencommand <add|remove> <menu> <command>");
   }
 
@@ -213,7 +287,7 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
   public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command,
                                               @NotNull String alias, @NotNull String[] args) {
     if (args.length == 1) {
-      return Arrays.asList("create", "decor", "name", "command", "opencommand");
+      return Arrays.asList("create", "decor", "name", "namemenu", "command", "lore", "itemchar", "opencommand");
     }
     if (args.length == 3 && args[0].equalsIgnoreCase("create")) {
       return Arrays.asList("chest", "large_chest", "ender_chest", "barrel", "shulker_red");
@@ -221,8 +295,14 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
     if (args.length == 3 && args[0].equalsIgnoreCase("opencommand")) {
       return Arrays.asList("add", "remove");
     }
+    if (args.length == 3 && args[0].equalsIgnoreCase("namemenu")) {
+      return Arrays.asList("left", "center", "right");
+    }
     if (args.length == 4 && args[0].equalsIgnoreCase("command")) {
       return Arrays.asList("player", "console");
+    }
+    if (args.length == 4 && args[0].equalsIgnoreCase("itemchar")) {
+      return Arrays.asList("true", "false");
     }
     return new ArrayList<>();
   }

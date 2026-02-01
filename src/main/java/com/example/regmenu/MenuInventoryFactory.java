@@ -10,12 +10,13 @@ public final class MenuInventoryFactory {
 
   public static void openMenu(Player player, MenuData menu) {
     Inventory inventory;
+    String title = MenuTitleFormatter.format(menu);
     if (menu.getInventoryType().getInventoryType() == null) {
       inventory = player.getServer().createInventory(new MenuHolder(menu.getName(), MenuHolder.Mode.VIEW),
-          menu.getSize(), ChatColor.DARK_AQUA + "Menu: " + menu.getName());
+          menu.getSize(), title);
     } else {
       inventory = player.getServer().createInventory(new MenuHolder(menu.getName(), MenuHolder.Mode.VIEW),
-          menu.getInventoryType().getInventoryType(), ChatColor.DARK_AQUA + "Menu: " + menu.getName());
+          menu.getInventoryType().getInventoryType(), title);
     }
     menu.getItems().forEach((slot, item) -> {
       if (slot >= 0 && slot < inventory.getSize()) {

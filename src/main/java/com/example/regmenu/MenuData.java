@@ -12,6 +12,8 @@ public class MenuData {
   private final int size;
   private final MenuInventoryType inventoryType;
   private final String typeId;
+  private String title;
+  private MenuTitleAlignment titleAlignment = MenuTitleAlignment.LEFT;
   private final List<String> openCommands = new ArrayList<>();
   private final Map<Integer, MenuItemData> items = new HashMap<>();
 
@@ -20,6 +22,7 @@ public class MenuData {
     this.size = size;
     this.inventoryType = inventoryType;
     this.typeId = typeId;
+    this.title = name;
   }
 
   public String getName() {
@@ -36,6 +39,22 @@ public class MenuData {
 
   public String getTypeId() {
     return typeId;
+  }
+
+  public String getTitle() {
+    return title;
+  }
+
+  public void setTitle(String title) {
+    this.title = title;
+  }
+
+  public MenuTitleAlignment getTitleAlignment() {
+    return titleAlignment;
+  }
+
+  public void setTitleAlignment(MenuTitleAlignment titleAlignment) {
+    this.titleAlignment = titleAlignment;
   }
 
   public List<String> getOpenCommands() {
@@ -61,6 +80,8 @@ public class MenuData {
   public void save(YamlConfiguration config) {
     config.set("size", size);
     config.set("type", typeId);
+    config.set("title", title);
+    config.set("title-alignment", titleAlignment.name());
     config.set("open-commands", openCommands);
     ConfigurationSection itemsSection = config.createSection("items");
     for (Map.Entry<Integer, MenuItemData> entry : items.entrySet()) {
@@ -74,6 +95,8 @@ public class MenuData {
     MenuInventoryType type = MenuInventoryType.fromId(typeId);
     int size = config.getInt("size", type.getSize());
     MenuData data = new MenuData(name, size, type, typeId);
+    data.setTitle(config.getString("title", name));
+    data.setTitleAlignment(MenuTitleAlignment.fromString(config.getString("title-alignment", "LEFT")));
     data.getOpenCommands().addAll(config.getStringList("open-commands"));
     ConfigurationSection itemsSection = config.getConfigurationSection("items");
     if (itemsSection != null) {

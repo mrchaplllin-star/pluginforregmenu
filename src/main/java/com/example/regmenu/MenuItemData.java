@@ -1,9 +1,12 @@
 package com.example.regmenu;
 
+import java.util.List;
 import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.ItemFlag;
 
 public class MenuItemData {
   private ItemStack itemStack;
@@ -48,6 +51,34 @@ public class MenuItemData {
       meta.setDisplayName(name);
       itemStack.setItemMeta(meta);
     }
+  }
+
+  public void applyLore(String lore) {
+    if (itemStack == null || itemStack.getType() == Material.AIR) {
+      return;
+    }
+    ItemMeta meta = itemStack.getItemMeta();
+    if (meta != null) {
+      meta.setLore(List.of(lore));
+      itemStack.setItemMeta(meta);
+    }
+  }
+
+  public void setGlint(boolean enabled) {
+    if (itemStack == null || itemStack.getType() == Material.AIR) {
+      return;
+    }
+    ItemMeta meta = itemStack.getItemMeta();
+    if (meta == null) {
+      return;
+    }
+    if (enabled) {
+      meta.addEnchant(Enchantment.UNBREAKING, 1, true);
+      meta.removeItemFlags(ItemFlag.HIDE_ENCHANTS);
+    } else {
+      meta.getEnchants().keySet().forEach(meta::removeEnchant);
+    }
+    itemStack.setItemMeta(meta);
   }
 
   public void save(ConfigurationSection section) {
