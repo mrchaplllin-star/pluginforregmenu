@@ -63,7 +63,11 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
     }
     MenuInventoryType type = MenuInventoryType.fromId(typeId);
     MenuData updated = new MenuData(menu.getName(), type.getSize(), type, typeId);
-    updated.getItems().putAll(menu.getItems());
+    for (var entry : menu.getItems().entrySet()) {
+      if (entry.getKey() >= 0 && entry.getKey() < updated.getSize()) {
+        updated.setItem(entry.getKey(), entry.getValue());
+      }
+    }
     updated.getOpenCommands().addAll(menu.getOpenCommands());
     plugin.getMenuManager().getMenus().put(plugin.getMenuManager().normalizeName(menu.getName()), updated);
     plugin.getMenuManager().saveMenu(updated);
@@ -79,7 +83,11 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
       inventory = plugin.getServer().createInventory(new MenuHolder(menu.getName(), MenuHolder.Mode.EDIT),
           menu.getInventoryType().getInventoryType(), ChatColor.DARK_GREEN + "Edit: " + menu.getName());
     }
-    menu.getItems().forEach((slot, item) -> inventory.setItem(slot, item.getItemStack()));
+    menu.getItems().forEach((slot, item) -> {
+      if (slot >= 0 && slot < inventory.getSize()) {
+        inventory.setItem(slot, item.getItemStack());
+      }
+    });
     plugin.getEditorSessions().put(player.getUniqueId(), new EditorSession(menu.getName(), inventory));
     player.openInventory(inventory);
     player.sendMessage(ChatColor.GREEN + "Editing menu: " + menu.getName());

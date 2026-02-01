@@ -17,7 +17,11 @@ public final class MenuInventoryFactory {
       inventory = player.getServer().createInventory(new MenuHolder(menu.getName(), MenuHolder.Mode.VIEW),
           menu.getInventoryType().getInventoryType(), ChatColor.DARK_AQUA + "Menu: " + menu.getName());
     }
-    menu.getItems().forEach((slot, item) -> inventory.setItem(slot, item.getItemStack()));
+    menu.getItems().forEach((slot, item) -> {
+      if (slot >= 0 && slot < inventory.getSize()) {
+        inventory.setItem(slot, item.getItemStack());
+      }
+    });
     player.openInventory(inventory);
   }
 }
