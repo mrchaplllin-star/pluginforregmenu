@@ -1,5 +1,6 @@
 package com.example.regmenu;
 
+import java.util.List;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -85,13 +86,24 @@ public class MenuListener implements Listener {
   private ItemStack sanitizeItem(ItemStack item) {
     var meta = item.getItemMeta();
     if (meta != null) {
-      meta.setDisplayName(null);
-      meta.setLore(null);
+      meta.setDisplayName(" ");
+      meta.setLore(List.of());
       meta.setCustomModelData(null);
       meta.setUnbreakable(false);
       meta.setAttributeModifiers(null);
       meta.getEnchants().keySet().forEach(meta::removeEnchant);
       meta.getItemFlags().forEach(meta::removeItemFlags);
+      meta.addItemFlags(
+          org.bukkit.inventory.ItemFlag.HIDE_ATTRIBUTES,
+          org.bukkit.inventory.ItemFlag.HIDE_ENCHANTS,
+          org.bukkit.inventory.ItemFlag.HIDE_UNBREAKABLE,
+          org.bukkit.inventory.ItemFlag.HIDE_DESTROYS,
+          org.bukkit.inventory.ItemFlag.HIDE_DYE,
+          org.bukkit.inventory.ItemFlag.HIDE_PLACED_ON,
+          org.bukkit.inventory.ItemFlag.HIDE_POTION_EFFECTS,
+          org.bukkit.inventory.ItemFlag.HIDE_ARMOR_TRIM,
+          org.bukkit.inventory.ItemFlag.HIDE_STORED_ENCHANTS
+      );
       item.setItemMeta(meta);
     }
     return item;

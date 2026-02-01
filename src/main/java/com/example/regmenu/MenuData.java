@@ -14,6 +14,7 @@ public class MenuData {
   private final String typeId;
   private String title;
   private MenuTitleAlignment titleAlignment = MenuTitleAlignment.LEFT;
+  private boolean scrollEnabled;
   private final List<String> openCommands = new ArrayList<>();
   private final Map<Integer, MenuItemData> items = new HashMap<>();
 
@@ -57,6 +58,14 @@ public class MenuData {
     this.titleAlignment = titleAlignment;
   }
 
+  public boolean isScrollEnabled() {
+    return scrollEnabled;
+  }
+
+  public void setScrollEnabled(boolean scrollEnabled) {
+    this.scrollEnabled = scrollEnabled;
+  }
+
   public List<String> getOpenCommands() {
     return openCommands;
   }
@@ -82,6 +91,7 @@ public class MenuData {
     config.set("type", typeId);
     config.set("title", title);
     config.set("title-alignment", titleAlignment.name());
+    config.set("scroll", scrollEnabled);
     config.set("open-commands", openCommands);
     ConfigurationSection itemsSection = config.createSection("items");
     for (Map.Entry<Integer, MenuItemData> entry : items.entrySet()) {
@@ -97,6 +107,7 @@ public class MenuData {
     MenuData data = new MenuData(name, size, type, typeId);
     data.setTitle(config.getString("title", name));
     data.setTitleAlignment(MenuTitleAlignment.fromString(config.getString("title-alignment", "LEFT")));
+    data.setScrollEnabled(config.getBoolean("scroll", false));
     data.getOpenCommands().addAll(config.getStringList("open-commands"));
     ConfigurationSection itemsSection = config.getConfigurationSection("items");
     if (itemsSection != null) {

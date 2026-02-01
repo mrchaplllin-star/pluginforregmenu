@@ -56,7 +56,7 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
 
   private void handleCreate(Player player, MenuData menu, String[] args) {
     if (args.length < 3) {
-      player.sendMessage(ChatColor.RED + "Usage: /regmenu create <menu> <type>");
+      player.sendMessage(ChatColor.RED + "Usage: /regmenu create <menu> <type> [scroll]");
       return;
     }
     String typeId = args[2].toLowerCase();
@@ -64,6 +64,7 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
       player.sendMessage(ChatColor.RED + "Invalid type. Use: chest, large_chest, ender_chest, barrel, shulker_color");
       return;
     }
+    boolean scrollEnabled = args.length >= 4 && args[3].equalsIgnoreCase("scroll");
     MenuInventoryType type = MenuInventoryType.fromId(typeId);
     MenuData updated = new MenuData(menu.getName(), type.getSize(), type, typeId);
     for (var entry : menu.getItems().entrySet()) {
@@ -71,6 +72,7 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
         updated.setItem(entry.getKey(), entry.getValue());
       }
     }
+    updated.setScrollEnabled(scrollEnabled);
     updated.getOpenCommands().addAll(menu.getOpenCommands());
     plugin.getMenuManager().getMenus().put(plugin.getMenuManager().normalizeName(menu.getName()), updated);
     plugin.getMenuManager().saveMenu(updated);
@@ -259,7 +261,7 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
 
   private void sendUsage(Player player) {
     player.sendMessage(ChatColor.YELLOW + "Usage:");
-    player.sendMessage(ChatColor.GRAY + "/regmenu create <menu> <type>");
+    player.sendMessage(ChatColor.GRAY + "/regmenu create <menu> <type> [scroll]");
     player.sendMessage(ChatColor.GRAY + "/regmenu decor <menu>");
     player.sendMessage(ChatColor.GRAY + "/regmenu name <menu> <slot> <name>");
     player.sendMessage(ChatColor.GRAY + "/regmenu namemenu <menu> <name>");
@@ -291,6 +293,9 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
     }
     if (args.length == 3 && args[0].equalsIgnoreCase("create")) {
       return Arrays.asList("chest", "large_chest", "ender_chest", "barrel", "shulker_red");
+    }
+    if (args.length == 4 && args[0].equalsIgnoreCase("create")) {
+      return Arrays.asList("scroll");
     }
     if (args.length == 3 && args[0].equalsIgnoreCase("opencommand")) {
       return Arrays.asList("add", "remove");
