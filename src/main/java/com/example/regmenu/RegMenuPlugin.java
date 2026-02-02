@@ -14,11 +14,13 @@ public class RegMenuPlugin extends JavaPlugin {
   private OpenCommandRegistrar openCommandRegistrar;
   private NamespacedKey fillerKey;
   private NamespacedKey lockedKey;
+  private NamespacedKey linkedMenuKey;
 
   @Override
   public void onEnable() {
     fillerKey = new NamespacedKey(this, "filler");
     lockedKey = new NamespacedKey(this, "locked_item");
+    linkedMenuKey = new NamespacedKey(this, "linked_menu");
     menuManager = new MenuManager(this);
     menuManager.loadAllMenus();
     openCommandRegistrar = new OpenCommandRegistrar(this);
@@ -59,5 +61,9 @@ public class RegMenuPlugin extends JavaPlugin {
 
   public NamespacedKey getLockedKey() {
     return lockedKey;
+  }
+
+  public NamespacedKey getLinkedMenuKey() {
+    return linkedMenuKey;
   }
 }

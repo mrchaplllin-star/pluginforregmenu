@@ -36,6 +36,17 @@ public class MenuListener implements Listener {
       }
       return;
     }
+    if (event.getClickedInventory() == player.getInventory()
+        && event.isRightClick()
+        && !event.isShiftClick()) {
+      ItemStack current = event.getCurrentItem();
+      String linkedMenu = MenuItemUtils.getLinkedMenu(plugin, current);
+      if (linkedMenu != null && !linkedMenu.isBlank()) {
+        event.setCancelled(true);
+        MenuInventoryFactory.openMenu(plugin, player, plugin.getMenuManager().getOrCreateMenu(linkedMenu));
+        return;
+      }
+    }
     ItemStack current = event.getCurrentItem();
     if (event.getClickedInventory() == player.getInventory() && MenuItemUtils.isLocked(plugin, current)) {
       event.setCancelled(true);

@@ -9,6 +9,7 @@ import org.bukkit.persistence.PersistentDataType;
 
 public final class MenuItemUtils {
   private static final PersistentDataType<Byte, Byte> DATA_TYPE = PersistentDataType.BYTE;
+  private static final PersistentDataType<String, String> STRING_DATA_TYPE = PersistentDataType.STRING;
 
   private MenuItemUtils() {
   }
@@ -66,11 +67,44 @@ public final class MenuItemUtils {
     return container.has(getLockedKey(plugin), DATA_TYPE);
   }
 
+  public static void setLinkedMenu(RegMenuPlugin plugin, ItemStack stack, String menuName) {
+    if (stack == null || stack.getType() == Material.AIR) {
+      return;
+    }
+    ItemMeta meta = stack.getItemMeta();
+    if (meta == null) {
+      return;
+    }
+    PersistentDataContainer container = meta.getPersistentDataContainer();
+    if (menuName == null || menuName.isBlank()) {
+      container.remove(getLinkedMenuKey(plugin));
+    } else {
+      container.set(getLinkedMenuKey(plugin), STRING_DATA_TYPE, menuName);
+    }
+    stack.setItemMeta(meta);
+  }
+
+  public static String getLinkedMenu(RegMenuPlugin plugin, ItemStack stack) {
+    if (stack == null || stack.getType() == Material.AIR) {
+      return null;
+    }
+    ItemMeta meta = stack.getItemMeta();
+    if (meta == null) {
+      return null;
+    }
+    PersistentDataContainer container = meta.getPersistentDataContainer();
+    return container.get(getLinkedMenuKey(plugin), STRING_DATA_TYPE);
+  }
+
   private static NamespacedKey getFillerKey(RegMenuPlugin plugin) {
     return plugin.getFillerKey();
   }
 
   private static NamespacedKey getLockedKey(RegMenuPlugin plugin) {
     return plugin.getLockedKey();
+  }
+
+  private static NamespacedKey getLinkedMenuKey(RegMenuPlugin plugin) {
+    return plugin.getLinkedMenuKey();
   }
 }

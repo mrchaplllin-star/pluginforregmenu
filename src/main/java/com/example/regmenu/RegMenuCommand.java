@@ -204,6 +204,7 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
       updated.setItemMeta(meta);
     }
     MenuItemUtils.setLocked(plugin, updated, lock);
+    MenuItemUtils.setLinkedMenu(plugin, updated, menu.getName());
     player.getInventory().setItemInMainHand(updated);
     MenuInventoryFactory.openMenu(plugin, player, menu);
   }
