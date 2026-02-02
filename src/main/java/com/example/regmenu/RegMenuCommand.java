@@ -4,11 +4,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -117,7 +119,7 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
     if (slot < 0) {
       return;
     }
-    MenuItemData itemData = menu.getItem(slot);
+    MenuItemData itemData = resolveItemData(player, menu, slot);
     if (itemData == null || itemData.getItemStack() == null) {
       player.sendMessage(ChatColor.RED + "That slot is empty in this menu.");
       return;
@@ -126,6 +128,7 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
     itemData.applyName(ChatColor.translateAlternateColorCodes('&', name));
     menu.setItem(slot, itemData);
     plugin.getMenuManager().saveMenu(menu);
+    updateEditorSlot(player, menu, slot, itemData.getItemStack());
     player.sendMessage(ChatColor.GREEN + "Name updated.");
   }
 
@@ -162,7 +165,7 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
     if (slot < 0) {
       return;
     }
-    MenuItemData itemData = menu.getItem(slot);
+    MenuItemData itemData = resolveItemData(player, menu, slot);
     if (itemData == null || itemData.getItemStack() == null) {
       player.sendMessage(ChatColor.RED + "That slot is empty in this menu.");
       return;
@@ -173,6 +176,7 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
     itemData.setExecutor(executor);
     menu.setItem(slot, itemData);
     plugin.getMenuManager().saveMenu(menu);
+    updateEditorSlot(player, menu, slot, itemData.getItemStack());
     player.sendMessage(ChatColor.GREEN + "Command assigned.");
   }
 
@@ -185,7 +189,7 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
     if (slot < 0) {
       return;
     }
-    MenuItemData itemData = menu.getItem(slot);
+    MenuItemData itemData = resolveItemData(player, menu, slot);
     if (itemData == null || itemData.getItemStack() == null) {
       player.sendMessage(ChatColor.RED + "That slot is empty in this menu.");
       return;
@@ -194,6 +198,7 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
     itemData.setGlint(enabled);
     menu.setItem(slot, itemData);
     plugin.getMenuManager().saveMenu(menu);
+    updateEditorSlot(player, menu, slot, itemData.getItemStack());
     player.sendMessage(ChatColor.GREEN + "Item glint updated.");
   }
 
@@ -206,7 +211,7 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
     if (slot < 0) {
       return;
     }
-    MenuItemData itemData = menu.getItem(slot);
+    MenuItemData itemData = resolveItemData(player, menu, slot);
     if (itemData == null || itemData.getItemStack() == null) {
       player.sendMessage(ChatColor.RED + "That slot is empty in this menu.");
       return;
@@ -215,6 +220,7 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
     itemData.applyLore(ChatColor.translateAlternateColorCodes('&', lore));
     menu.setItem(slot, itemData);
     plugin.getMenuManager().saveMenu(menu);
+    updateEditorSlot(player, menu, slot, itemData.getItemStack());
     player.sendMessage(ChatColor.GREEN + "Item lore updated.");
   }
 
@@ -292,6 +298,30 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
         || typeId.equals("large_chest")
         || typeId.equals("ender_chest")
         || typeId.equals("barrel");
+  }
+
+  private MenuItemData resolveItemData(Player player, MenuData menu, int slot) {
+    MenuItemData itemData = menu.getItem(slot);
+    if (itemData != null && itemData.getItemStack() != null) {
+      return itemData;
+    }
+    EditorSession session = plugin.getEditorSessions().get(player.getUniqueId());
+    if (session != null && session.getMenuName().equalsIgnoreCase(menu.getName())) {
+      ItemStack item = session.getInventory().getItem(slot);
+      if (item != null && item.getType() != Material.AIR && !MenuItemUtils.isFiller(plugin, item)) {
+        MenuItemData newData = new MenuItemData(item.clone());
+        menu.setItem(slot, newData);
+        return newData;
+      }
+    }
+    return null;
+  }
+
+  private void updateEditorSlot(Player player, MenuData menu, int slot, ItemStack itemStack) {
+    EditorSession session = plugin.getEditorSessions().get(player.getUniqueId());
+    if (session != null && session.getMenuName().equalsIgnoreCase(menu.getName())) {
+      session.getInventory().setItem(slot, itemStack);
+    }
   }
 
   @Override
