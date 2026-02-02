@@ -100,7 +100,6 @@ public class MenuListener implements Listener {
           org.bukkit.inventory.ItemFlag.HIDE_DESTROYS,
           org.bukkit.inventory.ItemFlag.HIDE_DYE,
           org.bukkit.inventory.ItemFlag.HIDE_PLACED_ON,
-          org.bukkit.inventory.ItemFlag.HIDE_POTION_EFFECTS,
           org.bukkit.inventory.ItemFlag.HIDE_ARMOR_TRIM,
           org.bukkit.inventory.ItemFlag.HIDE_STORED_ENCHANTS
       );
