@@ -13,10 +13,12 @@ public class RegMenuPlugin extends JavaPlugin {
   private final Map<UUID, EditorSession> editorSessions = new HashMap<>();
   private OpenCommandRegistrar openCommandRegistrar;
   private NamespacedKey fillerKey;
+  private NamespacedKey lockedKey;
 
   @Override
   public void onEnable() {
     fillerKey = new NamespacedKey(this, "filler");
+    lockedKey = new NamespacedKey(this, "locked_item");
     menuManager = new MenuManager(this);
     menuManager.loadAllMenus();
     openCommandRegistrar = new OpenCommandRegistrar(this);
@@ -53,5 +55,9 @@ public class RegMenuPlugin extends JavaPlugin {
 
   public NamespacedKey getFillerKey() {
     return fillerKey;
+  }
+
+  public NamespacedKey getLockedKey() {
+    return lockedKey;
   }
 }

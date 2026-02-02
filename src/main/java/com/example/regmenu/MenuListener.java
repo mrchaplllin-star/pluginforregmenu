@@ -10,6 +10,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
@@ -35,13 +36,24 @@ public class MenuListener implements Listener {
       }
       return;
     }
-
+    ItemStack current = event.getCurrentItem();
+    if (event.getClickedInventory() == player.getInventory() && MenuItemUtils.isLocked(plugin, current)) {
+      event.setCancelled(true);
+    }
   }
 
   @EventHandler
   public void onInventoryDrag(InventoryDragEvent event) {
     if (event.getInventory().getHolder() instanceof MenuHolder holder
         && holder.getMode() == MenuHolder.Mode.VIEW) {
+      event.setCancelled(true);
+    }
+  }
+
+  @EventHandler
+  public void onDropItem(PlayerDropItemEvent event) {
+    ItemStack item = event.getItemDrop().getItemStack();
+    if (MenuItemUtils.isLocked(plugin, item)) {
       event.setCancelled(true);
     }
   }

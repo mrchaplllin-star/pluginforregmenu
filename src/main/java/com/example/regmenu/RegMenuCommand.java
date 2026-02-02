@@ -48,6 +48,7 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
       case "name" -> handleRename(player, menu, args);
       case "namemenu" -> handleMenuName(player, menu, args);
       case "command" -> handleCommandAssign(player, menu, args);
+      case "setitem" -> handleSetItem(player, menu, args);
       case "itemchar" -> handleItemCharm(player, menu, args);
       case "lore" -> handleLore(player, menu, args);
       case "opencommand" -> handleOpenCommand(player, menu, args);
@@ -183,6 +184,30 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
     player.sendMessage(ChatColor.GREEN + "Command assigned.");
   }
 
+  private void handleSetItem(Player player, MenuData menu, String[] args) {
+    if (args.length < 3) {
+      player.sendMessage(ChatColor.RED + "Usage: /regmenu setitem <menu> <name> [lock]");
+      return;
+    }
+    ItemStack item = player.getInventory().getItemInMainHand();
+    if (item.getType() == Material.AIR) {
+      player.sendMessage(ChatColor.RED + "Hold the item in your main hand first.");
+      return;
+    }
+    boolean lock = args.length >= 4 && args[args.length - 1].equalsIgnoreCase("lock");
+    int nameEnd = lock ? args.length - 1 : args.length;
+    String name = String.join(" ", Arrays.copyOfRange(args, 2, nameEnd));
+    ItemStack updated = item.clone();
+    var meta = updated.getItemMeta();
+    if (meta != null) {
+      meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
+      updated.setItemMeta(meta);
+    }
+    MenuItemUtils.setLocked(plugin, updated, lock);
+    player.getInventory().setItemInMainHand(updated);
+    MenuInventoryFactory.openMenu(plugin, player, menu);
+  }
+
   private void handleItemCharm(Player player, MenuData menu, String[] args) {
     if (args.length < 4) {
       player.sendMessage(ChatColor.RED + "Usage: /regmenu itemchar <menu> <slot> <true|false>");
@@ -285,6 +310,7 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
     player.sendMessage(ChatColor.GRAY + "/regmenu namemenu <menu> <name>");
     player.sendMessage(ChatColor.GRAY + "/regmenu namemenu <menu> <left|center|right> <name>");
     player.sendMessage(ChatColor.GRAY + "/regmenu command <menu> <slot> <player|console> <command>");
+    player.sendMessage(ChatColor.GRAY + "/regmenu setitem <menu> <name> [lock]");
     player.sendMessage(ChatColor.GRAY + "/regmenu lore <menu> <slot> <text>");
     player.sendMessage(ChatColor.GRAY + "/regmenu itemchar <menu> <slot> <true|false>");
     player.sendMessage(ChatColor.GRAY + "/regmenu opencommand <add|remove> <menu> <command>");
@@ -331,7 +357,10 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
   public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command,
                                               @NotNull String alias, @NotNull String[] args) {
     if (args.length == 1) {
-      return Arrays.asList("create", "decor", "name", "namemenu", "command", "lore", "itemchar", "opencommand");
+      return Arrays.asList("create", "decor", "name", "namemenu", "command", "setitem", "lore", "itemchar", "opencommand");
+    }
+    if (args.length == 2) {
+      return plugin.getMenuManager().getMenus().keySet().stream().toList();
     }
     if (args.length == 3 && args[0].equalsIgnoreCase("create")) {
       return Arrays.asList("chest", "large_chest", "ender_chest", "barrel", "shulker_red");
