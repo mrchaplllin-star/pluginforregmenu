@@ -94,9 +94,18 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
         inventory.setItem(slot, item.getItemStack());
       }
     });
+    fillEmptySlots(inventory);
     plugin.getEditorSessions().put(player.getUniqueId(), new EditorSession(menu.getName(), inventory));
     player.openInventory(inventory);
     player.sendMessage(ChatColor.GREEN + "Editing menu: " + menu.getName());
+  }
+
+  private void fillEmptySlots(org.bukkit.inventory.Inventory inventory) {
+    for (int slot = 0; slot < inventory.getSize(); slot++) {
+      if (inventory.getItem(slot) == null || inventory.getItem(slot).getType() == org.bukkit.Material.AIR) {
+        inventory.setItem(slot, MenuItemUtils.createFiller(plugin));
+      }
+    }
   }
 
   private void handleRename(Player player, MenuData menu, String[] args) {

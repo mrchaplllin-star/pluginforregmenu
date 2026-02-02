@@ -35,7 +35,7 @@ public class OpenMenuCommand implements CommandExecutor, TabCompleter {
     }
     String name = args[0];
     MenuData menu = plugin.getMenuManager().getOrCreateMenu(name);
-    MenuInventoryFactory.openMenu(player, menu);
+    MenuInventoryFactory.openMenu(plugin, player, menu);
     return true;
   }
 

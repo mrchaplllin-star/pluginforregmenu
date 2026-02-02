@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -11,9 +12,11 @@ public class RegMenuPlugin extends JavaPlugin {
   private MenuManager menuManager;
   private final Map<UUID, EditorSession> editorSessions = new HashMap<>();
   private OpenCommandRegistrar openCommandRegistrar;
+  private NamespacedKey fillerKey;
 
   @Override
   public void onEnable() {
+    fillerKey = new NamespacedKey(this, "filler");
     menuManager = new MenuManager(this);
     menuManager.loadAllMenus();
     openCommandRegistrar = new OpenCommandRegistrar(this);
@@ -46,5 +49,9 @@ public class RegMenuPlugin extends JavaPlugin {
 
   public OpenCommandRegistrar getOpenCommandRegistrar() {
     return openCommandRegistrar;
+  }
+
+  public NamespacedKey getFillerKey() {
+    return fillerKey;
   }
 }

@@ -68,7 +68,7 @@ public class MenuListener implements Listener {
     MenuData menu = plugin.getMenuManager().getOrCreateMenu(menuName);
     for (int slot = 0; slot < menu.getSize(); slot++) {
       ItemStack item = inventory.getItem(slot);
-      if (item == null || item.getType() == Material.AIR) {
+      if (item == null || item.getType() == Material.AIR || MenuItemUtils.isFiller(plugin, item)) {
         menu.setItem(slot, null);
       } else {
         MenuItemData data = menu.getItem(slot);

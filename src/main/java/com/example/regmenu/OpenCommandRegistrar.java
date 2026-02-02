@@ -49,7 +49,7 @@ public class OpenCommandRegistrar {
           return true;
         }
         MenuData menu = plugin.getMenuManager().getOrCreateMenu(menuName);
-        MenuInventoryFactory.openMenu(player, menu);
+        MenuInventoryFactory.openMenu(plugin, player, menu);
         return true;
       }
     };
