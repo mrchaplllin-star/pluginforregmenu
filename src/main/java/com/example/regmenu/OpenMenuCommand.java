@@ -22,15 +22,15 @@ public class OpenMenuCommand implements CommandExecutor, TabCompleter {
   public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label,
                            @NotNull String[] args) {
     if (!(sender instanceof Player player)) {
-      sender.sendMessage(ChatColor.RED + "Only players can use this command.");
+      sender.sendMessage(ChatColor.RED + "Цю команду можуть використовувати лише гравці.");
       return true;
     }
     if (!player.hasPermission("regmenu.open")) {
-      player.sendMessage(ChatColor.RED + "You do not have permission to open menus.");
+      player.sendMessage(ChatColor.RED + "У вас немає прав на відкриття меню.");
       return true;
     }
     if (args.length < 1) {
-      player.sendMessage(ChatColor.RED + "Usage: /openmenu <menu>");
+      player.sendMessage(ChatColor.RED + "Використання: /openmenu <меню>");
       return true;
     }
     String name = args[0];

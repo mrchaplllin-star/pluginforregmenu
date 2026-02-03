@@ -25,11 +25,11 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
   public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label,
                            @NotNull String[] args) {
     if (!(sender instanceof Player player)) {
-      sender.sendMessage(ChatColor.RED + "Only players can use this command.");
+      sender.sendMessage(ChatColor.RED + "Цю команду можуть використовувати лише гравці.");
       return true;
     }
     if (!player.hasPermission("regmenu.edit")) {
-      player.sendMessage(ChatColor.RED + "You do not have permission to edit menus.");
+      player.sendMessage(ChatColor.RED + "У вас немає прав на редагування меню.");
       return true;
     }
     if (args.length < 2) {
@@ -59,12 +59,12 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
 
   private void handleCreate(Player player, MenuData menu, String[] args) {
     if (args.length < 3) {
-      player.sendMessage(ChatColor.RED + "Usage: /regmenu create <menu> <type> [scroll]");
+      player.sendMessage(ChatColor.RED + "Використання: /regmenu create <меню> <тип> [scroll]");
       return;
     }
     String typeId = args[2].toLowerCase();
     if (!isValidType(typeId)) {
-      player.sendMessage(ChatColor.RED + "Invalid type. Use: chest, large_chest, ender_chest, barrel, shulker_color");
+      player.sendMessage(ChatColor.RED + "Невірний тип. Використовуйте: chest, large_chest, ender_chest, barrel, shulker_color");
       return;
     }
     boolean scrollEnabled = args.length >= 4 && args[3].equalsIgnoreCase("scroll");
@@ -79,7 +79,7 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
     updated.getOpenCommands().addAll(menu.getOpenCommands());
     plugin.getMenuManager().getMenus().put(plugin.getMenuManager().normalizeName(menu.getName()), updated);
     plugin.getMenuManager().saveMenu(updated);
-    player.sendMessage(ChatColor.GREEN + "Menu created: " + updated.getName() + " (" + typeId + ")");
+    player.sendMessage(ChatColor.GREEN + "Меню створено: " + updated.getName() + " (" + typeId + ")");
   }
 
   private void openEditor(Player player, MenuData menu) {
@@ -100,7 +100,7 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
     fillEmptySlotsIfNew(menu, inventory);
     plugin.getEditorSessions().put(player.getUniqueId(), new EditorSession(menu.getName(), inventory));
     player.openInventory(inventory);
-    player.sendMessage(ChatColor.GREEN + "Editing menu: " + menu.getName());
+    player.sendMessage(ChatColor.GREEN + "Редагування меню: " + menu.getName());
   }
 
   private void fillEmptySlotsIfNew(MenuData menu, org.bukkit.inventory.Inventory inventory) {
@@ -116,7 +116,7 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
 
   private void handleRename(Player player, MenuData menu, String[] args) {
     if (args.length < 4) {
-      player.sendMessage(ChatColor.RED + "Usage: /regmenu name <menu> <slot> <name>");
+      player.sendMessage(ChatColor.RED + "Використання: /regmenu name <меню> <слот> <назва>");
       return;
     }
     int slot = parseSlot(player, args[2], menu.getSize());
@@ -125,7 +125,7 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
     }
     MenuItemData itemData = resolveItemData(player, menu, slot);
     if (itemData == null || itemData.getItemStack() == null) {
-      player.sendMessage(ChatColor.RED + "That slot is empty in this menu.");
+      player.sendMessage(ChatColor.RED + "Цей слот порожній у цьому меню.");
       return;
     }
     String name = String.join(" ", java.util.Arrays.copyOfRange(args, 3, args.length));
@@ -133,12 +133,12 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
     menu.setItem(slot, itemData);
     plugin.getMenuManager().saveMenu(menu);
     updateEditorSlot(player, menu, slot, itemData.getItemStack());
-    player.sendMessage(ChatColor.GREEN + "Name updated.");
+    player.sendMessage(ChatColor.GREEN + "Назву оновлено.");
   }
 
   private void handleMenuName(Player player, MenuData menu, String[] args) {
     if (args.length < 3) {
-      player.sendMessage(ChatColor.RED + "Usage: /regmenu namemenu <menu> <name> OR /regmenu namemenu <menu> <left|center|right> <name>");
+      player.sendMessage(ChatColor.RED + "Використання: /regmenu namemenu <меню> <назва> АБО /regmenu namemenu <меню> <left|center|right> <назва>");
       return;
     }
     String alignmentCandidate = args[2].toLowerCase();
@@ -150,19 +150,19 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
       alignment = MenuTitleAlignment.LEFT;
     }
     if (args.length <= startIndex) {
-      player.sendMessage(ChatColor.RED + "Usage: /regmenu namemenu <menu> <name> OR /regmenu namemenu <menu> <left|center|right> <name>");
+      player.sendMessage(ChatColor.RED + "Використання: /regmenu namemenu <меню> <назва> АБО /regmenu namemenu <меню> <left|center|right> <назва>");
       return;
     }
     String name = String.join(" ", java.util.Arrays.copyOfRange(args, startIndex, args.length));
     menu.setTitle(ChatColor.translateAlternateColorCodes('&', name));
     menu.setTitleAlignment(alignment);
     plugin.getMenuManager().saveMenu(menu);
-    player.sendMessage(ChatColor.GREEN + "Menu title updated.");
+    player.sendMessage(ChatColor.GREEN + "Назву меню оновлено.");
   }
 
   private void handleCommandAssign(Player player, MenuData menu, String[] args) {
     if (args.length < 5) {
-      player.sendMessage(ChatColor.RED + "Usage: /regmenu command <menu> <slot> <player|console> <command>");
+      player.sendMessage(ChatColor.RED + "Використання: /regmenu command <меню> <слот> <player|console> <команда>");
       return;
     }
     int slot = parseSlot(player, args[2], menu.getSize());
@@ -171,7 +171,7 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
     }
     MenuItemData itemData = resolveItemData(player, menu, slot);
     if (itemData == null || itemData.getItemStack() == null) {
-      player.sendMessage(ChatColor.RED + "That slot is empty in this menu.");
+      player.sendMessage(ChatColor.RED + "Цей слот порожній у цьому меню.");
       return;
     }
     CommandExecutorType executor = CommandExecutorType.fromString(args[3]);
@@ -181,21 +181,40 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
     menu.setItem(slot, itemData);
     plugin.getMenuManager().saveMenu(menu);
     updateEditorSlot(player, menu, slot, itemData.getItemStack());
-    player.sendMessage(ChatColor.GREEN + "Command assigned.");
+    player.sendMessage(ChatColor.GREEN + "Команду призначено.");
   }
 
   private void handleSetItem(Player player, MenuData menu, String[] args) {
     if (args.length < 3) {
-      player.sendMessage(ChatColor.RED + "Usage: /regmenu setitem <menu> <name> [lock]");
+      player.sendMessage(ChatColor.RED + "Використання: /regmenu setitem <меню> <назва> [lock] [hotbar|hodbar|invent]");
       return;
     }
     ItemStack item = player.getInventory().getItemInMainHand();
     if (item.getType() == Material.AIR) {
-      player.sendMessage(ChatColor.RED + "Hold the item in your main hand first.");
+      player.sendMessage(ChatColor.RED + "Спочатку візьміть предмет у головну руку.");
       return;
     }
-    boolean lock = args.length >= 4 && args[args.length - 1].equalsIgnoreCase("lock");
-    int nameEnd = lock ? args.length - 1 : args.length;
+    boolean lock = false;
+    LinkedMenuMode mode = LinkedMenuMode.INVENT;
+    int nameEnd = args.length;
+    while (nameEnd > 2) {
+      String candidate = args[nameEnd - 1].toLowerCase();
+      if (candidate.equals("lock")) {
+        lock = true;
+        nameEnd -= 1;
+        continue;
+      }
+      if (candidate.equals("hotbar") || candidate.equals("hodbar") || candidate.equals("invent")) {
+        mode = LinkedMenuMode.fromString(candidate);
+        nameEnd -= 1;
+        continue;
+      }
+      break;
+    }
+    if (nameEnd <= 2) {
+      player.sendMessage(ChatColor.RED + "Використання: /regmenu setitem <меню> <назва> [lock] [hotbar|hodbar|invent]");
+      return;
+    }
     String name = String.join(" ", Arrays.copyOfRange(args, 2, nameEnd));
     ItemStack updated = item.clone();
     var meta = updated.getItemMeta();
@@ -205,13 +224,14 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
     }
     MenuItemUtils.setLocked(plugin, updated, lock);
     MenuItemUtils.setLinkedMenu(plugin, updated, menu.getName());
+    MenuItemUtils.setLinkedMenuMode(plugin, updated, mode);
     player.getInventory().setItemInMainHand(updated);
     MenuInventoryFactory.openMenu(plugin, player, menu);
   }
 
   private void handleItemCharm(Player player, MenuData menu, String[] args) {
     if (args.length < 4) {
-      player.sendMessage(ChatColor.RED + "Usage: /regmenu itemchar <menu> <slot> <true|false>");
+      player.sendMessage(ChatColor.RED + "Використання: /regmenu itemchar <меню> <слот> <true|false>");
       return;
     }
     int slot = parseSlot(player, args[2], menu.getSize());
@@ -220,7 +240,7 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
     }
     MenuItemData itemData = resolveItemData(player, menu, slot);
     if (itemData == null || itemData.getItemStack() == null) {
-      player.sendMessage(ChatColor.RED + "That slot is empty in this menu.");
+      player.sendMessage(ChatColor.RED + "Цей слот порожній у цьому меню.");
       return;
     }
     boolean enabled = Boolean.parseBoolean(args[3]);
@@ -228,12 +248,12 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
     menu.setItem(slot, itemData);
     plugin.getMenuManager().saveMenu(menu);
     updateEditorSlot(player, menu, slot, itemData.getItemStack());
-    player.sendMessage(ChatColor.GREEN + "Item glint updated.");
+    player.sendMessage(ChatColor.GREEN + "Блиск предмета оновлено.");
   }
 
   private void handleLore(Player player, MenuData menu, String[] args) {
     if (args.length < 4) {
-      player.sendMessage(ChatColor.RED + "Usage: /regmenu lore <menu> <slot> <text>");
+      player.sendMessage(ChatColor.RED + "Використання: /regmenu lore <меню> <слот> <текст>");
       return;
     }
     int slot = parseSlot(player, args[2], menu.getSize());
@@ -242,7 +262,7 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
     }
     MenuItemData itemData = resolveItemData(player, menu, slot);
     if (itemData == null || itemData.getItemStack() == null) {
-      player.sendMessage(ChatColor.RED + "That slot is empty in this menu.");
+      player.sendMessage(ChatColor.RED + "Цей слот порожній у цьому меню.");
       return;
     }
     String lore = String.join(" ", java.util.Arrays.copyOfRange(args, 3, args.length));
@@ -250,71 +270,71 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
     menu.setItem(slot, itemData);
     plugin.getMenuManager().saveMenu(menu);
     updateEditorSlot(player, menu, slot, itemData.getItemStack());
-    player.sendMessage(ChatColor.GREEN + "Item lore updated.");
+    player.sendMessage(ChatColor.GREEN + "Опис предмета оновлено.");
   }
 
   private void handleOpenCommand(Player player, MenuData menu, String[] args) {
     if (args.length < 4) {
-      player.sendMessage(ChatColor.RED + "Usage: /regmenu opencommand <add|remove> <menu> <command>");
+      player.sendMessage(ChatColor.RED + "Використання: /regmenu opencommand <add|remove> <меню> <команда>");
       return;
     }
     String action = args[2].toLowerCase();
     String command = args[3];
     String normalized = plugin.getOpenCommandRegistrar().normalize(command);
     if (normalized.isBlank()) {
-      player.sendMessage(ChatColor.RED + "Command cannot be empty.");
+      player.sendMessage(ChatColor.RED + "Команда не може бути порожньою.");
       return;
     }
     if (action.equals("add")) {
       if (menu.getOpenCommands().contains(normalized)) {
-        player.sendMessage(ChatColor.RED + "That open command already exists.");
+        player.sendMessage(ChatColor.RED + "Така команда відкриття вже існує.");
         return;
       }
       menu.getOpenCommands().add(normalized);
       plugin.getMenuManager().saveMenu(menu);
       plugin.getOpenCommandRegistrar().registerCommand(menu.getName(), normalized);
-      player.sendMessage(ChatColor.GREEN + "Open command added: /" + normalized);
+      player.sendMessage(ChatColor.GREEN + "Команду відкриття додано: /" + normalized);
       return;
     }
     if (action.equals("remove")) {
       if (!menu.getOpenCommands().remove(normalized)) {
-        player.sendMessage(ChatColor.RED + "That open command does not exist.");
+        player.sendMessage(ChatColor.RED + "Такої команди відкриття не існує.");
         return;
       }
       plugin.getMenuManager().saveMenu(menu);
       plugin.getOpenCommandRegistrar().unregisterCommand(normalized);
-      player.sendMessage(ChatColor.GREEN + "Open command removed: /" + normalized);
+      player.sendMessage(ChatColor.GREEN + "Команду відкриття видалено: /" + normalized);
       return;
     }
-    player.sendMessage(ChatColor.RED + "Usage: /regmenu opencommand <add|remove> <menu> <command>");
+    player.sendMessage(ChatColor.RED + "Використання: /regmenu opencommand <add|remove> <меню> <команда>");
   }
 
   private int parseSlot(Player player, String slotArg, int size) {
     try {
       int slot = Integer.parseInt(slotArg);
       if (slot < 1 || slot > size) {
-        player.sendMessage(ChatColor.RED + "Slot must be between 1 and " + size + ".");
+        player.sendMessage(ChatColor.RED + "Слот має бути від 1 до " + size + ".");
         return -1;
       }
       return slot - 1;
     } catch (NumberFormatException ex) {
-      player.sendMessage(ChatColor.RED + "Slot must be a number.");
+      player.sendMessage(ChatColor.RED + "Слот має бути числом.");
       return -1;
     }
   }
 
   private void sendUsage(Player player) {
-    player.sendMessage(ChatColor.YELLOW + "Usage:");
-    player.sendMessage(ChatColor.GRAY + "/regmenu create <menu> <type> [scroll]");
-    player.sendMessage(ChatColor.GRAY + "/regmenu decor <menu>");
-    player.sendMessage(ChatColor.GRAY + "/regmenu name <menu> <slot> <name>");
-    player.sendMessage(ChatColor.GRAY + "/regmenu namemenu <menu> <name>");
-    player.sendMessage(ChatColor.GRAY + "/regmenu namemenu <menu> <left|center|right> <name>");
-    player.sendMessage(ChatColor.GRAY + "/regmenu command <menu> <slot> <player|console> <command>");
-    player.sendMessage(ChatColor.GRAY + "/regmenu setitem <menu> <name> [lock]");
-    player.sendMessage(ChatColor.GRAY + "/regmenu lore <menu> <slot> <text>");
-    player.sendMessage(ChatColor.GRAY + "/regmenu itemchar <menu> <slot> <true|false>");
-    player.sendMessage(ChatColor.GRAY + "/regmenu opencommand <add|remove> <menu> <command>");
+    player.sendMessage(ChatColor.YELLOW + "Використання:");
+    player.sendMessage(ChatColor.GRAY + "/regmenu create <меню> <тип> [scroll]");
+    player.sendMessage(ChatColor.GRAY + "/regmenu decor <меню>");
+    player.sendMessage(ChatColor.GRAY + "/regmenu name <меню> <слот> <назва>");
+    player.sendMessage(ChatColor.GRAY + "/regmenu namemenu <меню> <назва>");
+    player.sendMessage(ChatColor.GRAY + "/regmenu namemenu <меню> <left|center|right> <назва>");
+    player.sendMessage(ChatColor.GRAY + "/regmenu command <меню> <слот> <player|console> <команда>");
+    player.sendMessage(ChatColor.GRAY + "/regmenu setitem <меню> <назва> [lock] [hotbar|hodbar|invent]");
+    player.sendMessage(ChatColor.GRAY + "/regmenu lore <меню> <слот> <текст>");
+    player.sendMessage(ChatColor.GRAY + "/regmenu itemchar <меню> <слот> <true|false>");
+    player.sendMessage(ChatColor.GRAY + "/regmenu opencommand <add|remove> <меню> <команда>");
   }
 
   private boolean isValidType(String typeId) {
@@ -380,6 +400,9 @@ public class RegMenuCommand implements CommandExecutor, TabCompleter {
     }
     if (args.length == 4 && args[0].equalsIgnoreCase("itemchar")) {
       return Arrays.asList("true", "false");
+    }
+    if (args.length >= 4 && args[0].equalsIgnoreCase("setitem")) {
+      return Arrays.asList("lock", "hotbar", "hodbar", "invent");
     }
     return new ArrayList<>();
   }

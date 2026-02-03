@@ -11,6 +11,8 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
@@ -41,7 +43,11 @@ public class MenuListener implements Listener {
         && !event.isShiftClick()) {
       ItemStack current = event.getCurrentItem();
       String linkedMenu = MenuItemUtils.getLinkedMenu(plugin, current);
+      LinkedMenuMode mode = MenuItemUtils.getLinkedMenuMode(plugin, current);
       if (linkedMenu != null && !linkedMenu.isBlank()) {
+        if (mode != LinkedMenuMode.INVENT) {
+          return;
+        }
         event.setCancelled(true);
         MenuInventoryFactory.openMenu(plugin, player, plugin.getMenuManager().getOrCreateMenu(linkedMenu));
         return;
@@ -70,6 +76,26 @@ public class MenuListener implements Listener {
   }
 
   @EventHandler
+  public void onPlayerInteract(PlayerInteractEvent event) {
+    if (!event.getAction().isRightClick()) {
+      return;
+    }
+    if (event.getHand() != EquipmentSlot.HAND) {
+      return;
+    }
+    ItemStack item = event.getItem();
+    String linkedMenu = MenuItemUtils.getLinkedMenu(plugin, item);
+    if (linkedMenu == null || linkedMenu.isBlank()) {
+      return;
+    }
+    LinkedMenuMode mode = MenuItemUtils.getLinkedMenuMode(plugin, item);
+    if (mode == LinkedMenuMode.HOTBAR || mode == LinkedMenuMode.INVENT) {
+      event.setCancelled(true);
+      MenuInventoryFactory.openMenu(plugin, event.getPlayer(), plugin.getMenuManager().getOrCreateMenu(linkedMenu));
+    }
+  }
+
+  @EventHandler
   public void onInventoryClose(InventoryCloseEvent event) {
     if (!(event.getPlayer() instanceof Player player)) {
       return;
@@ -80,7 +106,7 @@ public class MenuListener implements Listener {
       EditorSession session = plugin.getEditorSessions().remove(player.getUniqueId());
       if (session != null && session.getMenuName().equalsIgnoreCase(menuName)) {
         saveInventoryToMenu(menuName, session.getInventory());
-        player.sendMessage(ChatColor.GREEN + "Menu saved: " + menuName);
+        player.sendMessage(ChatColor.GREEN + "Меню збережено: " + menuName);
       }
     }
 

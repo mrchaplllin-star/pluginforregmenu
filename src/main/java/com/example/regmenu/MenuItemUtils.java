@@ -84,6 +84,20 @@ public final class MenuItemUtils {
     stack.setItemMeta(meta);
   }
 
+  public static void setLinkedMenuMode(RegMenuPlugin plugin, ItemStack stack, LinkedMenuMode mode) {
+    if (stack == null || stack.getType() == Material.AIR) {
+      return;
+    }
+    ItemMeta meta = stack.getItemMeta();
+    if (meta == null) {
+      return;
+    }
+    PersistentDataContainer container = meta.getPersistentDataContainer();
+    LinkedMenuMode resolved = mode == null ? LinkedMenuMode.INVENT : mode;
+    container.set(getLinkedMenuModeKey(plugin), STRING_DATA_TYPE, resolved.name());
+    stack.setItemMeta(meta);
+  }
+
   public static String getLinkedMenu(RegMenuPlugin plugin, ItemStack stack) {
     if (stack == null || stack.getType() == Material.AIR) {
       return null;
@@ -96,6 +110,19 @@ public final class MenuItemUtils {
     return container.get(getLinkedMenuKey(plugin), STRING_DATA_TYPE);
   }
 
+  public static LinkedMenuMode getLinkedMenuMode(RegMenuPlugin plugin, ItemStack stack) {
+    if (stack == null || stack.getType() == Material.AIR) {
+      return LinkedMenuMode.INVENT;
+    }
+    ItemMeta meta = stack.getItemMeta();
+    if (meta == null) {
+      return LinkedMenuMode.INVENT;
+    }
+    PersistentDataContainer container = meta.getPersistentDataContainer();
+    String value = container.get(getLinkedMenuModeKey(plugin), STRING_DATA_TYPE);
+    return LinkedMenuMode.fromString(value);
+  }
+
   private static NamespacedKey getFillerKey(RegMenuPlugin plugin) {
     return plugin.getFillerKey();
   }
@@ -106,5 +133,9 @@ public final class MenuItemUtils {
 
   private static NamespacedKey getLinkedMenuKey(RegMenuPlugin plugin) {
     return plugin.getLinkedMenuKey();
+  }
+
+  private static NamespacedKey getLinkedMenuModeKey(RegMenuPlugin plugin) {
+    return plugin.getLinkedMenuModeKey();
   }
 }

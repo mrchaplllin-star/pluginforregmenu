@@ -45,7 +45,7 @@ public class OpenCommandRegistrar {
       @Override
       public boolean execute(@NotNull CommandSender sender, @NotNull String alias, @NotNull String[] args) {
         if (!(sender instanceof Player player)) {
-          sender.sendMessage("Only players can use this command.");
+          sender.sendMessage("Цю команду можуть використовувати лише гравці.");
           return true;
         }
         MenuData menu = plugin.getMenuManager().getOrCreateMenu(menuName);
@@ -88,7 +88,7 @@ public class OpenCommandRegistrar {
       field.setAccessible(true);
       return (CommandMap) field.get(Bukkit.getServer());
     } catch (ReflectiveOperationException e) {
-      plugin.getLogger().warning("Failed to access command map: " + e.getMessage());
+      plugin.getLogger().warning("Не вдалося отримати доступ до мапи команд: " + e.getMessage());
       return null;
     }
   }
